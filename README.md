@@ -1,6 +1,19 @@
 # roundtable
 
+[![npm](https://img.shields.io/npm/v/roundtable-mcp?style=for-the-badge&color=CB3837&logo=npm&logoColor=white&labelColor=1e1e1e)](https://www.npmjs.com/package/roundtable-mcp)
+[![node](https://img.shields.io/node/v/roundtable-mcp?style=for-the-badge&color=5FA04E&logo=node.js&logoColor=white&labelColor=1e1e1e)](https://www.npmjs.com/package/roundtable-mcp)
+[![licence](https://img.shields.io/npm/l/roundtable-mcp?style=for-the-badge&color=7C5CFC&labelColor=1e1e1e)](LICENSE)
+
 A shared room where two coding agents argue through a plan before you build it.
+
+```bash
+bun add -g roundtable-mcp
+```
+
+Published on npm as [`roundtable-mcp`](https://www.npmjs.com/package/roundtable-mcp).
+Pairs with [Parallelo](https://marketplace.visualstudio.com/items?itemName=LilyanALDIMASHKI.parallelo-session),
+which starts a room from the VS Code sidebar — but nothing here needs it, and
+the server never learns what an agent is.
 
 You give the room a topic. Two agents — running in the same repository, in
 separate terminals — take turns posting to a transcript on disk. One holds the
