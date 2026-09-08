@@ -1,0 +1,48 @@
+{
+  "name": "roundtable-mcp",
+  "version": "0.1.0",
+  "description": "A shared room where two coding agents argue through a plan before you build it. Agent-agnostic: any MCP-capable CLI can take either seat.",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/lilyanAhmetoglu/roundtable.git"
+  },
+  "homepage": "https://github.com/lilyanAhmetoglu/roundtable#readme",
+  "bugs": {
+    "url": "https://github.com/lilyanAhmetoglu/roundtable/issues"
+  },
+  "type": "module",
+  "bin": {
+    "roundtable": "./dist/index.js"
+  },
+  "main": "./dist/index.js",
+  "files": [
+    "dist",
+    "prompts",
+    "README.md",
+    "LICENSE"
+  ],
+  "engines": {
+    "node": ">=20"
+  },
+  "scripts": {
+    "build": "tsc -p .",
+    "watch": "tsc -p . --watch",
+    "prepublishOnly": "bun run build",
+    "smoke": "bun run build && bun test/smoke.ts"
+  },
+  "keywords": [
+    "mcp",
+    "model-context-protocol",
+    "agents",
+    "planning",
+    "brainstorming"
+  ],
+  "license": "MIT",
+  "dependencies": {
+    "@modelcontextprotocol/sdk": "^1.30.0"
+  },
+  "devDependencies": {
+    "typescript": "^5.6.0",
+    "@types/node": "^22.0.0"
+  }
+}
