@@ -1,6 +1,6 @@
 {
   "name": "roundtable-mcp",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "description": "A shared room where two coding agents argue through a plan before you build it. Agent-agnostic: any MCP-capable CLI can take either seat.",
   "repository": {
     "type": "git",

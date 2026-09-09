@@ -44,8 +44,15 @@ export class Room {
     this.messagesDir = path.join(this.dir, 'messages');
   }
 
-  /** Create the room if this is the first seat to arrive. Never overwrites. */
-  ensure(topic: string, budget: number): RoomConfig {
+  /**
+   * Create the room if this is the first seat to arrive. Never overwrites.
+   *
+   * `spec` is where the room's one output goes, relative to the checkout. It is
+   * settled here, once, and every later reader -- the briefs, `write_spec`,
+   * the closing message -- takes it from `room.json`, so there is never a
+   * second place that believes something different about where the plan is.
+   */
+  ensure(topic: string, budget: number, spec?: string): RoomConfig {
     fs.mkdirSync(this.messagesDir, { recursive: true });
 
     // Everything under .roundtable is scaffolding -- prompts, server config,
@@ -64,7 +71,7 @@ export class Room {
       room: this.name,
       topic,
       budget,
-      spec: `SPEC-${this.name}.md`,
+      spec: specFor(this.name, spec),
       createdAt: new Date().toISOString(),
     };
     writeAtomic(configPath, JSON.stringify(config, null, 2) + '\n');
@@ -154,6 +161,11 @@ export class Room {
   /** Write the plan. The server owns this file so no agent needs a file tool. */
   writeSpec(text: string): string {
     const target = this.specPath();
+    // The spec may be asked for somewhere that does not exist yet --
+    // `docs/specs/` in a repository that has no `docs` -- and the seat holds no
+    // file tool to make it with. A room that argued for twenty minutes and then
+    // could not write down what it decided is the worst failure available here.
+    fs.mkdirSync(path.dirname(target), { recursive: true });
     writeAtomic(target, text.endsWith('\n') ? text : text + '\n');
     return target;
   }
@@ -216,6 +228,24 @@ export function note(dir: string, line: string): void {
   } catch {
     // Logging must never take the server down with it.
   }
+}
+
+/**
+ * The spec path a room will use, relative to the checkout.
+ *
+ * Refuses anything that leaves the checkout or names an absolute path: the room
+ * is a plan about this repository, and a spec written to `/etc` or three levels
+ * up is not something an agent should be able to arrange by naming a room. An
+ * empty or escaping value falls back to the default rather than failing, since
+ * the caller is a person typing a path, not a machine.
+ */
+function specFor(room: string, requested?: string): string {
+  const fallback = `SPEC-${room}.md`;
+  const wanted = requested?.trim();
+  if (!wanted || path.isAbsolute(wanted)) return fallback;
+  const normal = path.normalize(wanted);
+  if (normal.split(path.sep).includes('..')) return fallback;
+  return normal;
 }
 
 function writeAtomic(file: string, contents: string): void {

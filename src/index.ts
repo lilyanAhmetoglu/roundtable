@@ -27,6 +27,11 @@ interface Options {
   cwd: string;
   /** Where `transcript` writes. Unset means stdout, so the spec stays the only file a room leaves. */
   out?: string;
+  /**
+   * Where `seed` puts the room's spec, relative to the checkout. Unset means
+   * `SPEC-<room>.md` at the root, which is where it has always gone.
+   */
+  spec?: string;
 }
 
 function parseArgs(argv: string[]): Options {
@@ -57,6 +62,7 @@ function parseArgs(argv: string[]): Options {
     budget,
     cwd: pick('cwd', 'ROUNDTABLE_CWD', process.cwd()),
     out: flags.get('out'),
+    spec: flags.get('spec'),
   };
 }
 
@@ -72,7 +78,7 @@ const sleep = (ms: number) => new Promise(resolve => setTimeout(resolve, ms));
  */
 function seed(options: Options): void {
   const room = new Room(options.cwd, options.room);
-  const config = room.ensure(options.topic, options.budget);
+  const config = room.ensure(options.topic, options.budget, options.spec);
   const packaged = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..', 'prompts');
   const written: string[] = [];
   for (const seat of ['lead', 'peer'] as const) {

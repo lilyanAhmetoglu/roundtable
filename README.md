@@ -141,6 +141,24 @@ corrupt when an agent dies mid-turn.
 The transcript is plain JSON in your repo. Read it, diff it, delete it. Add
 `.roundtable/` to `.gitignore` if you would rather not keep it.
 
+## Where the spec goes
+
+`SPEC-<room>.md` at the root of the checkout, which is the one file a room
+leaves behind. `seed` takes `--spec` to put it somewhere else:
+
+```bash
+roundtable seed --room cache-design --topic "..." --budget 12 \
+  --cwd <worktree> --spec docs/specs/cache-design.md
+```
+
+The path is relative to the checkout, and the directories in it are created
+when the spec is written — a seat has no file tools, so if the server did not
+make them nobody could. An absolute path, or one climbing out of the checkout
+with `..`, falls back to the default rather than writing there: the room is a
+plan about this repository. Whatever is settled at seed time is what the lead's
+brief tells it to write, so there is never a second place that believes
+something different about where the plan is.
+
 ## What you get out
 
 The lead writes a spec file itself, with its own file tools — the server never
