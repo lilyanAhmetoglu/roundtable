@@ -1,4 +1,4 @@
-import { spawn, type ChildProcessWithoutNullStreams } from 'node:child_process';
+import { spawn, spawnSync, type ChildProcessWithoutNullStreams } from 'node:child_process';
 import * as fs from 'node:fs';
 import * as os from 'node:os';
 import * as path from 'node:path';
@@ -48,9 +48,9 @@ class Client {
 }
 const safeJson = (t: string) => { try { return JSON.parse(t); } catch { return undefined; } };
 
-function seat(seatName: string, agent: string, budget = 3) {
+function seat(seatName: string, agent: string, budget = 3, room = 'smoke') {
   return new Client(spawn('node', [
-    SERVER, '--room', 'smoke', '--seat', seatName, '--agent', agent,
+    SERVER, '--room', room, '--seat', seatName, '--agent', agent,
     '--topic', 'Should the cache be write-through', '--budget', String(budget), '--cwd', cwd,
   ], { stdio: ['pipe', 'pipe', 'inherit'] }) as ChildProcessWithoutNullStreams);
 }
@@ -125,5 +125,30 @@ const seqs = fs.readdirSync(dir).sort().map(f => JSON.parse(fs.readFileSync(path
 check('transcript is contiguous and ordered', JSON.stringify(seqs) === JSON.stringify([1, 2, 3, 4, 5, 6]), JSON.stringify(seqs));
 
 lead.kill(); peer.kill();
+
+// --spec: the room's one output, put where it was asked for.
+//
+// A seat holds no file tool, so if the server does not make the directory
+// nobody can, and a room that argued for twenty minutes has nowhere to write
+// down what it decided.
+const seeded = spawnSync('node', [
+  SERVER, 'seed', '--room', 'placed', '--topic', 'where the spec goes',
+  '--budget', '2', '--cwd', cwd, '--spec', 'docs/specs/placed.md',
+], { encoding: 'utf8' });
+check('seed honours --spec', safeJson(seeded.stdout)?.spec === 'docs/specs/placed.md', seeded.stdout);
+check('the brief names the spec path', fs.readFileSync(path.join(cwd, '.roundtable/placed/lead.md'), 'utf8').includes('docs/specs/placed.md'), 'brief does not name it');
+
+const placed = seat('lead', 'opus-5', 2, 'placed');
+await placed.init();
+await placed.call('post', { text: 'Only one seat here; this is about the file.', kind: 'brief' });
+await placed.call('write_spec', { text: '# Placed\n' });
+check('spec written into a directory that did not exist', fs.existsSync(path.join(cwd, 'docs/specs/placed.md')), 'missing');
+const escaped = spawnSync('node', [
+  SERVER, 'seed', '--room', 'escapee', '--topic', 't', '--budget', '2', '--cwd', cwd,
+  '--spec', '../outside.md',
+], { encoding: 'utf8' });
+check('a spec path leaving the checkout falls back', safeJson(escaped.stdout)?.spec === 'SPEC-escapee.md', escaped.stdout);
+placed.kill();
+
 console.log(failures === 0 ? '\nALL PASS' : `\n${failures} FAILED`);
 process.exit(failures === 0 ? 0 : 1);
